@@ -24,10 +24,10 @@ export main(msg_start,msg_len){
   } else {
     console_log("unknown",7)
   }
-  a = [1,2,3];
+  a = [1,2,"wha"];
   push(a,4)
   ap = num(pop(a))
-  as = num(shift(a))
+  as = string(shift(a))
   b = {who:"test"}
   c = dictionary(msg)
   cs = string(c)
@@ -41,7 +41,7 @@ export main(msg_start,msg_len){
     a.whoa = "Whoa"
     i+=1
   }
-  val = num(b.ab)
+  val = string(b.who)
   console(mem_loc(val),len(val))
   return 100
 }
