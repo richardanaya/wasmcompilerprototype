@@ -60,7 +60,7 @@ function parse(file){
   main_function = {
     type: "function",
     name: "main",
-    expored: 1,
+    exported: 1,
     return_type: "number",
     body: [
         {
