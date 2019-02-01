@@ -1,5 +1,8 @@
 # aether
 A simple programming language for web assembly
+* simplicity
+* inferred static typing
+* can compile itself
 
 ```
 console_log(msg_addr,msg_len)
