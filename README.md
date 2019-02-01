@@ -16,7 +16,7 @@ export main(msg_start,msg_len){
   if msg == "exit" {
     return -1
   } else if msg == "end" {
-    goto #end
+    console_log("end",3)
   } else {
     console_log("unknown",7)
   }
@@ -39,7 +39,6 @@ export main(msg_start,msg_len){
   }
   val = num(b.ab)
   console(&val,len(val))
-  #end
   return 100
 }
 ```
