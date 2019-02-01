@@ -7,7 +7,7 @@ function string(i,len){
   }
   let s = "";
   for(let j=i;j<i+len;j++){
-    s += String.fromCharCode(_memory[j]);
+    s = s + String.fromCharCode(_memory[j]);
   }
   return s;
 }
@@ -102,16 +102,16 @@ function lex(file){
       }
       if(sym.type == "number"){
         if(c == CHAR_1 || c == CHAR_2 || c == CHAR_3 || c == CHAR_4 || c == CHAR_5 || c == CHAR_6 || c == CHAR_7 || c == CHAR_8 || c == CHAR_9 || c == CHAR_0 ){
-          sym.value += c
+          sym.value = sym.value + c
         } else {
           error = "error invalid number:" + sym.value + c
           break
         }
       } else {
-          sym.value += c
+          sym.value = sym.value + c
       }
     }
-    i++;
+    i = i + 1;
   }
   return {symbols:symbols,error:error}
 }
@@ -129,7 +129,7 @@ function parse_return(symbols,i){
       statement.value = {type:"number",value:sym.value}
       break
     }
-    i+=1
+    i = i + 1
   }
 
   return {statement:statement,error:error,next:i}
@@ -157,7 +157,7 @@ function parse_statements(symbols,i){
     } else if(sym.type =="symbol" && sym.value == "}"){
       break
     }
-    i+=1
+    i = i + 1
   }
 
   return {statements:statements,error:error,next:i}
@@ -202,7 +202,7 @@ function parse_function(symbols,i){
       error = "unknown identifier in function def: "+string(sym)
       break
     }
-    i+=1
+    i = i + 1
   }
 
   return {function:ast,error:error,next:i}
@@ -230,24 +230,8 @@ function parse(symbols){
       error = "unknown identifier: "+string(sym)
       break
     }
-    i+=1;
+    i = i + 1;
   }
-  /*main_function = {
-    type: "function",
-    name: "main",
-    exported: 1,
-    return_type: "number",
-    body: [
-        {
-          type: "return",
-          value: {
-            type: "number",
-            value: 42
-          }
-        }
-    ]
-  }
-  append(ast,main_function)*/
   return {ast:ast,error:error}
 }
 
@@ -285,7 +269,7 @@ function compile(code_offset,code_len) {
       break;
     }
     mem_set(wasmResponse+4+j,wasm[j])
-    j += 1
+    j = j + 1
   }
   return 0
 }
