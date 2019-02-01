@@ -182,6 +182,7 @@ function parse_function(symbols,i){
     } else if(!is_empty(ast.name) && params_started == 1 && sym.type =="symbol" && sym.value == ")"){
       if(i+1==len(symbols)){
         ast.imported = 1
+        break;
       } else {
           next_sym = dictionary(symbols[i+1])
           if(next_sym.type == "symbol" || next_sym.value == "{"){
@@ -194,8 +195,8 @@ function parse_function(symbols,i){
             i = parse_result.next
             break
           } else {
-            error = "unexpected start to function body"
-            break
+            ast.imported = 1
+            break;
           }
       }
     } else {
@@ -216,16 +217,14 @@ function parse(symbols){
     if(i==len(symbols)){break}
     sym = symbols[i]
     if(sym.type =="identifier"){
-      if(sym.value == "export") {
-        parse_result = parse_function(symbols,i)
-        if(! is_empty(parse_result.error)){
-          error = parse_result.error
-          break
-        }
-        console.log(ast)
-        append(ast,parse_result.function)
-        i = parse_result.next
+      parse_result = parse_function(symbols,i)
+      if(! is_empty(parse_result.error)){
+        error = parse_result.error
+        break
       }
+      console.log(ast)
+      append(ast,parse_result.function)
+      i = parse_result.next
     } else {
       error = "unknown identifier: "+string(sym)
       break
