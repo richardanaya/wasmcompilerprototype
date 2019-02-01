@@ -28,21 +28,21 @@ export main(msg_start,msg_len){
   push(a,4)
   ap = num(pop(a))
   as = num(shift(a))
-  b = {"who":"test"}
+  b = {who:"test"}
   c = dictionary(msg)
   cs = string(c)
   i = 0
   loop {
     if i == 5 { break }
     if i == 3 or i ==4 {
-      console_log(&msg,len(msg));
+      console_log(mem_loc(msg),len(msg));
     }
     a[i] = "a"
     a.whoa = "Whoa";
     i+=1;
   }
   val = num(b.ab)
-  console(&val,len(val))
+  console(mem_loc(val),len(val))
   return 100
 }
 ```
