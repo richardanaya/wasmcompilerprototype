@@ -1,6 +1,6 @@
 let _memory = [];
 
-
+//built-in functions
 function string(i,len){
   if(typeof i == "object"){
     return JSON.stringify(i)
@@ -12,6 +12,35 @@ function string(i,len){
   return s;
 }
 
+function is_empty(v){
+  if(Array.isArray(v)){
+    return v.length == 0;
+  } else if(typeof v == "object"){
+    return v.keys().length == 0;
+  } else {
+    return v == 0;
+  }
+}
+
+function mem_alloc(i){
+  return 0;
+}
+
+function mem_free(i){
+
+}
+
+function mem_set_i32(i,n){
+  _memory[i+0] = 0;
+  _memory[i+1] = 0;
+  _memory[i+2] = 0;
+  _memory[i+3] = 1;
+}
+
+function mem_set(i,n){
+  _memory[i+0] = n;
+}
+
 function append(ast,item){
   ast.push(item);
   return ast;
@@ -21,10 +50,11 @@ function dictionary(s){
   JSON.stringify(s);
 }
 
-function malloc(len){
-    return 0;
+function len(v){
+  return v.length
 }
 
+// compiler code
 function parse(file){
   ast = []
   main_function = {}
@@ -44,21 +74,37 @@ function parse(file){
   return ast
 }
 
-function compile(i,len) {
-  let file = string(i,len);
-  let ast = parse(file);
-  console.log(string(ast));
-  _memory[0] = 0;
-  _memory[1] = 0;
-  _memory[2] = 0;
-  _memory[3] = 1;
-  _memory[4] = 42;
-  return 0;
+function compile_ast(ast){
+  return [42]
 }
 
+//exported
+function file(len){
+  return mem_alloc(len)
+}
+
+function compile(code_offset,code_len) {
+  file = string(code_offset,code_len)
+  ast = parse(file)
+  wasm = compile_ast(ast)
+  console.log(string(ast))
+  wasmResponse = mem_alloc(1+len(wasm))
+  mem_set_i32(wasmResponse,1)
+  j = 0
+  while(true) {
+    if(j == len(wasm)){
+      break;
+    }
+    mem_set(wasmResponse+4+j,wasm[j])
+    j += 1
+  }
+  return 0
+}
+
+//client example
 var fs = require('fs');
 var contents = fs.readFileSync(process.argv[2], 'utf8');
-let start = malloc(contents.length);
+let start = file(contents.length);
 for(let i=0;i<contents.length;i++){
   _memory[i] = contents.charCodeAt(i)
 }
