@@ -5,7 +5,7 @@ A programming language for web assembly
 * can compile itself
 * no null
 
-```
+```javascript
 console_log(msg_addr,msg_len)
 
 magic_number = 42
@@ -24,25 +24,25 @@ export main(msg_start,msg_len){
   } else {
     console_log("unknown",7)
   }
-  a = [1,2,3];
+  a = [1,2,"wha"]
   push(a,4)
   ap = num(pop(a))
-  as = num(shift(a))
-  b = {"who":"test"}
+  as = string(shift(a))
+  b = {who:"test"}
   c = dictionary(msg)
   cs = string(c)
   i = 0
   loop {
     if i == 5 { break }
     if i == 3 or i ==4 {
-      console_log(&msg,len(msg));
+      console_log(mem_loc(msg),len(msg))
     }
     a[i] = "a"
-    a.whoa = "Whoa";
-    i+=1;
+    a.whoa = "Whoa"
+    i+=1
   }
-  val = num(b.ab)
-  console(&val,len(val))
+  val = string(b.who)
+  console(mem_loc(val),len(val))
   return 100
 }
 ```
