@@ -11,7 +11,7 @@ console_log(msg_addr,msg_len)
 magic_number = 42
 magic_word = "please"
 
-square(x) { 
+square(x) {
   return x^2
 }
 
@@ -24,7 +24,7 @@ export main(msg_start,msg_len){
   } else {
     console_log("unknown",7)
   }
-  a = [1,2,3]; 
+  a = [1,2,3];
   push(a,4)
   ap = num(pop(a))
   as = num(shift(a))
@@ -33,12 +33,12 @@ export main(msg_start,msg_len){
   cs = string(c)
   i = 0
   loop {
-    if i == 5 { break } 
+    if i == 5 { break }
     if i == 3 or i ==4 {
       console_log(&msg,len(msg));
     }
-    a[i] = "a" 
-    a["blah"+string(i)] = "Whoa";
+    a[i] = "a"
+    a.whoa = "Whoa";
     i+=1;
   }
   val = num(b.ab)

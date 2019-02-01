@@ -57,20 +57,21 @@ function len(v){
 // compiler code
 function parse(file){
   ast = []
-  main_function = {}
-  main_function["type"] = "function"
-  main_function["name"] = "main"
-  main_function["exported"] = 1
-  main_function["return_type"] = "number"
-  body = []
-  return_42 = {}
-  append(body,return_42)
-  return_42["type"] = "return"
-  value_42 = {}
-  value_42["type"] = "number"
-  value_42["value"] = 42
-  return_42["value"] = value_42
-  main_function["body"] = body
+  main_function = {
+    type: "function",
+    name: "main",
+    expored: 1,
+    return_type: "number",
+    body: [
+        {
+          type: "return",
+          value: {
+            type: "number",
+            value: 42
+          }
+        }
+    ]
+  }
   append(ast,main_function)
   return ast
 }
