@@ -60,6 +60,7 @@ function parse(file){
   main_function = {}
   main_function["type"] = "function"
   main_function["name"] = "main"
+  main_function["exported"] = 1
   main_function["return_type"] = "number"
   body = []
   return_42 = {}
