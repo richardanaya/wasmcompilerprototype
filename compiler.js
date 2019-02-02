@@ -30,11 +30,18 @@ function mem_free(i){
 
 }
 
+function number(n){
+  if(typeof n == "string"){
+    return n.charCodeAt(0)
+  }
+  return n
+}
+
 function mem_set_i32(i,n){
   _memory[i+0] = 0;
   _memory[i+1] = 0;
   _memory[i+2] = 0;
-  _memory[i+3] = 1;
+  _memory[i+3] = n;
 }
 
 function mem_set(i,n){
@@ -47,6 +54,11 @@ function append(ast,item){
 }
 
 function dictionary(s){
+  if(typeof s == "string") { return JSON.parse(s)};
+  return s;
+}
+
+function array(s){
   if(typeof s == "string") { return JSON.parse(s)};
   return s;
 }
@@ -164,7 +176,7 @@ function parse_statements(symbols,i){
 }
 
 function parse_function(symbols,i){
-  let ast = {type:"function", name:"",imported:0,exported:0,statements:[]}
+  let ast = {type:"function", name:"",result:"number",imported:0,exported:0,statements:[]}
   error = ""
   params_started = 0
   while(true){
@@ -235,7 +247,212 @@ function parse(symbols){
 }
 
 function compile_ast(ast){
-  return [42]
+  let module = [];
+  let section_types = {section:"types", types:[
+    {params:[], return: [TYPE_I32]}
+  ]}
+  append(module,section_types)
+  let section_functions = {section:"functions", functions:[0]}
+  append(module,section_functions)
+  let section_memory = {section:"memory", min:10}
+  append(module,section_memory)
+  let section_exports = {section:"exports", exports:[
+    {name:"main",kind:KIND_FUNCTION,index:0},
+    {name:"memory",kind:KIND_MEMORY,index:0}
+  ]}
+  append(module,section_exports)
+  let section_code = {section:"code", code:[
+    {
+      locals:[],
+      code:[
+        I32_CONST, 42
+      ]
+    }
+  ]}
+  append(module,section_code)
+  return module
+}
+
+SECTION_TYPES = 1
+SECTION_FUNCTIONS = 3
+SECTION_MEMORY = 5
+SECTION_EXPORTS = 7
+SECTION_CODE = 10
+
+FUNCTION_TYPE = 96 //0x60
+TYPE_I32 = 127 // 0x7F
+TYPE_I64 = 126 // 0x7E
+TYPE_F32 = 125 // 0x7D
+TYPE_F64 = 124 // 0x7C
+
+EXPRESSION_END = 11 //0x0B
+
+I32_CONST = 65 //0x41
+
+KIND_FUNCTION = 0
+KIND_MEMORY = 2
+
+function appendUnsignedInteger(maxBits,bytes,value){
+  if(value<128){
+      append(bytes,value)
+      return
+  }
+  throw "handle higher unsigned values"
+}
+
+function appendSignedInteger(maxBits,bytes,value){
+  if(value<64){
+      append(bytes,value)
+      return
+  }
+  throw "handle higher signed values"
+}
+
+function appendUninterpretedInteger(maxBits,bytes,value){
+  appendSignedInteger(maxBits,bytes,value)
+}
+
+function appendStringToBytes(dest,s){
+  let j = 0
+  while(true){
+    if(j == len(s)){break}
+    append(dest,number(s[j]))
+    j = j+1
+  }
+}
+
+function appendBytes(dest,bytes){
+  let j = 0
+  while(true){
+    if(j == len(bytes)){break}
+    append(dest,number(bytes[j]))
+    j = j+1
+  }
+}
+
+function compile_wasm(wasm){
+  let bytes = []
+  //add magic numbers
+  append(bytes,0)
+  append(bytes,97)
+  append(bytes,115)
+  append(bytes,109)
+  append(bytes,1)
+  append(bytes,0)
+  append(bytes,0)
+  append(bytes,0)
+
+  let i = 0
+  while(true){
+    if(i == len(wasm)){
+      break
+    }
+    section = dictionary(wasm[i])
+    console.log(section)
+
+    if(section.section == "types"){
+      let types_bytes = []
+      appendUnsignedInteger(32,types_bytes,len(section.types))
+      j = 0
+      while(true){
+        if(j == len(section.types)){break}
+        type = dictionary(section.types[j])
+        append(types_bytes,FUNCTION_TYPE)
+        appendUnsignedInteger(32,types_bytes,len(type.params))
+        appendBytes(types_bytes,type.params)
+        appendUnsignedInteger(32,types_bytes,len(type.return))
+        appendBytes(types_bytes,type.return)
+        j = j+1
+      }
+      append(bytes,SECTION_TYPES)
+      appendUnsignedInteger(32,bytes,len(types_bytes))
+      appendBytes(bytes,types_bytes)
+    }
+
+
+    if(section.section == "functions"){
+      let function_bytes = []
+      appendUnsignedInteger(32,function_bytes,len(section.functions))
+      j = 0
+      while(true){
+        if(j == len(section.functions)){break}
+        appendUnsignedInteger(32,function_bytes,number(section.functions[j]))
+        j = j+1
+      }
+      append(bytes,SECTION_FUNCTIONS)
+      appendUnsignedInteger(32,bytes,len(function_bytes))
+      appendBytes(bytes,function_bytes)
+    }
+
+    if(section.section == "memory"){
+      let memory_bytes = []
+      append(memory_bytes,1)
+      append(memory_bytes,0)
+      append(memory_bytes,section.min)
+      append(bytes,SECTION_MEMORY)
+      appendUnsignedInteger(32,bytes,len(memory_bytes))
+      appendBytes(bytes,memory_bytes)
+    }
+
+    if(section.section == "exports"){
+      let exports_bytes = []
+      appendUnsignedInteger(32,exports_bytes,len(section.exports))
+      j = 0
+      while(true){
+        if(j == len(section.exports)){break}
+        let e = dictionary(section.exports[j])
+        export_bytes = []
+        appendUnsignedInteger(32,export_bytes,len(e.name))
+        appendStringToBytes(export_bytes,e.name)
+        append(export_bytes,e.kind)
+        appendUnsignedInteger(32,export_bytes,e.index)
+        appendBytes(exports_bytes,export_bytes)
+        j = j+1
+      }
+      append(bytes,SECTION_EXPORTS)
+      appendUnsignedInteger(32,bytes,len(exports_bytes))
+      appendBytes(bytes,exports_bytes)
+    }
+
+    if(section.section == "code"){
+      let codes_bytes = []
+      appendUnsignedInteger(32,codes_bytes,len(section.code))
+      j = 0
+      while(true){
+        if(j == len(section.code)){break}
+        let c = dictionary(section.code[j])
+        code_bytes = []
+        appendUnsignedInteger(32,code_bytes,len(c.locals))
+        k = 0
+        while(true){
+          if(k == len(c.locals)){break}
+          //appendUnsignedInteger(32,function_bytes,number(section.functions[j]))
+          k = k+1
+        }
+        k = 0
+        while(true){
+          if(k == len(c.code)){break}
+          op = c.code[k]
+          if(op == I32_CONST){
+            append(code_bytes,op)
+            appendUninterpretedInteger(32,code_bytes,c.code[k+1])
+            k = k+1
+          }
+          k = k+1
+        }
+        append(code_bytes,EXPRESSION_END)
+        appendUnsignedInteger(32,codes_bytes,len(code_bytes))
+        appendBytes(codes_bytes,code_bytes)
+        j = j+1
+      }
+      append(bytes,SECTION_CODE)
+      appendUnsignedInteger(32,bytes,len(codes_bytes))
+      appendBytes(bytes,codes_bytes)
+    }
+
+    i = i+1
+  }
+  return bytes
 }
 
 //exported
@@ -258,16 +475,19 @@ function compile(code_offset,code_len) {
     return
   }
   ast = parse_result.ast
-  wasm = compile_ast(ast)
   console.log(string(ast))
-  wasmResponse = mem_alloc(1+len(wasm))
-  mem_set_i32(wasmResponse,1)
+  wasm = compile_ast(ast)
+  console.log(string(wasm))
+  let wasmBytes = compile_wasm(wasm)
+  console.log(wasmBytes)
+  wasmResponse = mem_alloc(4+len(wasmBytes))
+  mem_set_i32(wasmResponse,len(wasmBytes))
   j = 0
   while(true) {
-    if(j == len(wasm)){
+    if(j == len(wasmBytes)){
       break;
     }
-    mem_set(wasmResponse+4+j,wasm[j])
+    mem_set(wasmResponse+4+j,wasmBytes[j])
     j = j + 1
   }
   return 0
